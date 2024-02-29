@@ -1,0 +1,2 @@
+dk.rmgroup.keycloak.authenticator.WebAuthnPasswordlessOptionAuthenticatorFactory
+dk.rmgroup.keycloak.authenticator.WebAuthnConditionalEnrollmentAuthenticatorFactory
