@@ -1,8 +1,5 @@
 package dk.rmgroup.keycloak.authenticator;
 
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
@@ -12,6 +9,9 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+
 public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator {
   private static final Logger LOG = Logger.getLogger(WebAuthnConditionalEnrollmentAuthenticator.class);
 
@@ -19,8 +19,9 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
 
   private static final String FORM_PARAM_USER_CONFIRM_ANSWER = "user-confirm-answer";
 
+  @Override
   public void authenticate(AuthenticationFlowContext context) {
-    if (userHasWebAuthnAuthenticator(context).booleanValue()) {
+    if (userHasWebAuthnAuthenticator(context)) {
       LOG.debugf("User already registered webauthn authenticator", new Object[0]);
       context.success();
       return;
@@ -39,11 +40,12 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
         LOG.debugf("Looking for webauthn authenticator...", new Object[0]);
         authenticators = new WebAuthnAuthenticatorsBean(context.getSession(), context.getRealm(), user, "webauthn");
       }
-      return Boolean.valueOf(!authenticators.getAuthenticators().isEmpty());
+      return !authenticators.getAuthenticators().isEmpty();
     }
-    return Boolean.valueOf(false);
+    return false;
   }
 
+  @Override
   public void action(AuthenticationFlowContext context) {
     MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
     String answer = (String) formData.getFirst(FORM_PARAM_USER_CONFIRM_ANSWER);
@@ -57,17 +59,21 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
     context.success();
   }
 
+  @Override
   public boolean requiresUser() {
     return false;
   }
 
+  @Override
   public boolean configuredFor(KeycloakSession keycloakSession, RealmModel realmModel, UserModel userModel) {
     return true;
   }
 
+  @Override
   public void setRequiredActions(KeycloakSession keycloakSession, RealmModel realmModel, UserModel userModel) {
   }
 
+  @Override
   public void close() {
   }
 }
