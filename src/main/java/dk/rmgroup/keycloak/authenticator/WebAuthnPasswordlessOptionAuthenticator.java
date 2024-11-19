@@ -14,7 +14,6 @@ import org.keycloak.utils.StringUtil;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
-
 public class WebAuthnPasswordlessOptionAuthenticator extends WebAuthnPasswordlessAuthenticator {
 
   private static final Logger logger = Logger.getLogger(WebAuthnPasswordlessOptionAuthenticator.class);
@@ -53,8 +52,8 @@ public class WebAuthnPasswordlessOptionAuthenticator extends WebAuthnPasswordles
     }
 
     Response challenge = context.form()
-      .setFormData(formData)
-      .createForm("webauthn-authenticate-passwordless-option.ftl");
+        .setFormData(formData)
+        .createForm("webauthn-authenticate-passwordless-option.ftl");
     context.challenge(challenge);
   }
 
