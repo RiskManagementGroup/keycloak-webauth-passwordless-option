@@ -1,7 +1,6 @@
 package dk.rmgroup.keycloak.authenticator;
 
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.authenticators.browser.UsernamePasswordForm;
 import org.keycloak.authentication.authenticators.browser.WebAuthnPasswordlessAuthenticator;
@@ -11,6 +10,7 @@ import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.utils.StringUtil;
 
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
@@ -28,11 +28,10 @@ public class WebAuthnPasswordlessOptionAuthenticator extends WebAuthnPasswordles
   public void authenticate(AuthenticationFlowContext context) {
     super.authenticate(context);
 
-    MultivaluedMap<String, String> formData = new MultivaluedMapImpl<>();
+    MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
     String loginHint = context.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM);
 
-    String rememberMeUsername = AuthenticationManager.getRememberMeUsername(context.getRealm(),
-        context.getHttpRequest().getHttpHeaders());
+    String rememberMeUsername = AuthenticationManager.getRememberMeUsername(context.getSession());
 
     if (context.getUser() != null) {
       LoginFormsProvider form = context.form();
