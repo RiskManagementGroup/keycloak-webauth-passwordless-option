@@ -81,93 +81,26 @@
                 </div>
                 <div id="kc-form-buttons-webauthn" >
                     <hr>
-                    <input id="authenticateWebAuthnButton" type="button" onclick="webAuthnAuthenticate()" autofocus="autofocus"
+                    <input id="authenticateWebAuthnButton" type="button" autofocus="autofocus"
                         value="${kcSanitize(msg("webauthn-doAuthenticate"))}"
                         class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}"/>
                 </div>
             </div>
         </div>
-    <script type="text/javascript" src="${url.resourcesCommonPath}/node_modules/jquery/dist/jquery.min.js"></script>
-    <script type="text/javascript" src="${url.resourcesPath}/js/base64url.js"></script>
-    <script type="text/javascript">
-        const authnOptions = {
-            challenge : "${challenge}",
-            rpId : "${rpId}",
-            createTimeout : ${createTimeout},
-            isUserIdentified: ${isUserIdentified},
-            userVerification: "${userVerification}"
-        }
-
-        window.onload = () => {
-            if(!authnOptions.isUserIdentified) {
-                document.getElementById("kc-form-login").style.display = "block";
-            }
-        }
-
-        const getAllowCredentials = () => {
-            let allowCredentials = [];
-            let authn_use = document.forms['authn_select'].authn_use_chk;
-            if (authn_use !== undefined) {                
-                if (authn_use.length === undefined) {
-                    allowCredentials.push({
-                        id: base64url.decode(authn_use.value, {loose: true}),
-                        type: 'public-key',
-                    });
-                } else {
-                    for (let i = 0; i < authn_use.length; i++) {
-                        allowCredentials.push({
-                            id: base64url.decode(authn_use[i].value, {loose: true}),
-                            type: 'public-key',
-                        });
-                    }
-                }
-            }
-            return allowCredentials;
-        }
-
-        const getPublicKeyRequestOptions = () => {
-            let publicKeyReqOptions = {};
-            publicKeyReqOptions.rpId = authnOptions.rpId;
-            publicKeyReqOptions.challenge = base64url.decode(authnOptions.challenge, { loose: true });
-            publicKeyReqOptions.allowCredentials = !authnOptions.isUserIdentified ? [] : getAllowCredentials();
-
-            if(authnOptions.createTimeout !== 0) publicKeyReqOptions.timeout = authnOptions.createTimeout * 1000;
-            if (authnOptions.userVerification !== 'not specified') publicKeyReqOptions.userVerification = authnOptions.userVerification; 
-            
-            return publicKeyReqOptions;
-        }
-
-        const webAuthnAuthenticate = async (mediationOptions) => {
-            
-            const credential = await navigator.credentials.get({
-                publicKey: getPublicKeyRequestOptions(),
-                ...mediationOptions
-            }).catch(handleWebAuthError);
-
-            window.result = credential;
-
-            $("#clientDataJSON").val(encodeBase64AsUint8Array(result.response.clientDataJSON));
-            $("#authenticatorData").val(encodeBase64AsUint8Array(result.response.authenticatorData));
-            $("#signature").val(encodeBase64AsUint8Array(result.response.signature));
-            $("#credentialId").val(result.id);
-            if(result.response.userHandle) {
-                $("#userHandle").val(encodeBase64AsUint8Array(result.response.userHandle));
-            }
-            $("#webauth").submit();
-        }
-
-        const handleWebAuthError = (e) => {
-            if (e.name !== 'NotAllowedError') {
-                console.error(error);
-            }
-            $("#error").val(e);
-            $("#webauth").submit();
-        }
-
-        const encodeBase64AsUint8Array = (value) => {
-            return base64url.encode(new Uint8Array(value), { pad: false });
-        }
-
+    <script type="module">
+        import { authenticateByWebAuthn } from "${url.resourcesPath}/js/webauthnAuthenticate.js";
+        const authButton = document.getElementById('authenticateWebAuthnButton');
+        authButton.addEventListener("click", function() {
+            const input = {
+                isUserIdentified : ${isUserIdentified},
+                challenge : '${challenge}',
+                userVerification : '${userVerification}',
+                rpId : '${rpId}',
+                createTimeout : ${createTimeout},
+                errmsg : "${msg("webauthn-unsupported-browser-text")?no_esc}"
+            };
+            authenticateByWebAuthn(input);
+        });
     </script>
     <#elseif section = "info">
 
