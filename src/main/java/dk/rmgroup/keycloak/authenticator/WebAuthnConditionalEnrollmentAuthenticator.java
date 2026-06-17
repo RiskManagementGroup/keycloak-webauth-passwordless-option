@@ -22,7 +22,7 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
   @Override
   public void authenticate(AuthenticationFlowContext context) {
     if (userHasWebAuthnAuthenticator(context)) {
-      LOG.debugf("User already registered webauthn authenticator", new Object[0]);
+      LOG.debugf("User already registered webauthn authenticator");
       context.success();
       return;
     }
@@ -33,11 +33,11 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
   private Boolean userHasWebAuthnAuthenticator(AuthenticationFlowContext context) {
     UserModel user = context.getUser();
     if (user != null) {
-      LOG.debugf("Looking for webauthn-passworless authenticator...", new Object[0]);
+      LOG.debugf("Looking for webauthn-passworless authenticator...");
       WebAuthnAuthenticatorsBean authenticators = new WebAuthnAuthenticatorsBean(context.getSession(),
           context.getRealm(), user, "webauthn-passwordless");
       if (authenticators.getAuthenticators().isEmpty()) {
-        LOG.debugf("Looking for webauthn authenticator...", new Object[0]);
+        LOG.debugf("Looking for webauthn authenticator...");
         authenticators = new WebAuthnAuthenticatorsBean(context.getSession(), context.getRealm(), user, "webauthn");
       }
       return !authenticators.getAuthenticators().isEmpty();
@@ -48,7 +48,7 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
   @Override
   public void action(AuthenticationFlowContext context) {
     MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
-    String answer = (String) formData.getFirst(FORM_PARAM_USER_CONFIRM_ANSWER);
+    String answer = formData.getFirst(FORM_PARAM_USER_CONFIRM_ANSWER);
     LOG.debugf("Username answer is: %s", answer);
     if ("yes".equalsIgnoreCase(answer)) {
       AuthenticationSessionModel authenticationSession = context.getAuthenticationSession();
