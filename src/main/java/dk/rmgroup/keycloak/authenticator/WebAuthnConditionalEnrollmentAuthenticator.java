@@ -3,6 +3,10 @@ package dk.rmgroup.keycloak.authenticator;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
+import org.keycloak.authentication.authenticators.browser.WebAuthnMetadataService;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.WebAuthnCredentialProvider;
+import org.keycloak.credential.WebAuthnCredentialProviderFactory;
 import org.keycloak.forms.login.freemarker.model.WebAuthnAuthenticatorsBean;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -30,15 +34,18 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
     context.challenge(challenge);
   }
 
-  private Boolean userHasWebAuthnAuthenticator(AuthenticationFlowContext context) {
+  private boolean userHasWebAuthnAuthenticator(AuthenticationFlowContext context) {
     UserModel user = context.getUser();
     if (user != null) {
       LOG.debugf("Looking for webauthn-passworless authenticator...");
+
+      WebAuthnMetadataService metadataService = getCredentialProvider(context.getSession()).getMetadataService();
       WebAuthnAuthenticatorsBean authenticators = new WebAuthnAuthenticatorsBean(context.getSession(),
-          context.getRealm(), user, "webauthn-passwordless");
+          context.getRealm(), user, "webauthn-passwordless", metadataService);
       if (authenticators.getAuthenticators().isEmpty()) {
         LOG.debugf("Looking for webauthn authenticator...");
-        authenticators = new WebAuthnAuthenticatorsBean(context.getSession(), context.getRealm(), user, "webauthn");
+        authenticators = new WebAuthnAuthenticatorsBean(context.getSession(), context.getRealm(), user, "webauthn",
+            metadataService);
       }
       return !authenticators.getAuthenticators().isEmpty();
     }
@@ -75,5 +82,10 @@ public class WebAuthnConditionalEnrollmentAuthenticator implements Authenticator
 
   @Override
   public void close() {
+  }
+
+  private WebAuthnCredentialProvider getCredentialProvider(KeycloakSession session) {
+    return (WebAuthnCredentialProvider) session.getProvider(CredentialProvider.class,
+        WebAuthnCredentialProviderFactory.PROVIDER_ID);
   }
 }
